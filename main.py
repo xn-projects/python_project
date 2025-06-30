@@ -1,9 +1,9 @@
 '''
-Главный модуль консольного приложения для поиска фильмов по базе данных Sakila.
-Позволяет:
-1. Выполнять различные типы поиска фильмов.
-2. Просматривать статистику поисковых запросов.
-3. Вести логирование запросов.
+Main module of the console application for searching movies in the Sakila database.
+Allows to:
+1. Perform various types of movie searches.
+2. View search query statistics.
+3. Log queries.
 '''
 
 import ui
@@ -11,18 +11,18 @@ import mysql_connector
 import log_writer
 import log_stats
 
-
 def handle_pagination(results: list, start_index: int) -> bool:
-    '''Отображает результаты и меню постраничного отображения данных.'''
-    if results:
-        ui.display_results(results, start_index=start_index)
-        return ui.show_pagination_menu() == '1'
-    print('Больше результатов нет.')
-    return False
+    '''Displays results and pagination menu.'''
+    if start_index >= len(results):
+        print('No more results available.')
+        log_writer.log_error(f'Tried to display page starting at index {start_index}, but total results are {len(results)}.')
+        return False
 
+    ui.display_results(results, start_index=start_index)
+    return ui.show_pagination_menu() == '1'
 
 def handle_keyword_search() -> None:
-    '''Обработка поиска по ключевому слову.'''
+    '''Handles search by keyword.'''
     keyword = ui.prompt_keyword()
     offset = 0
     while True:
@@ -33,9 +33,8 @@ def handle_keyword_search() -> None:
         else:
             break
 
-
 def handle_genre_year_search() -> None:
-    '''Обработка поиска по жанру и диапазону годов.'''
+    '''Handles search by genre and year range.'''
     genres, min_year, max_year = mysql_connector.get_genres_and_year_range()
     genre, year_from, year_to = ui.prompt_genre_and_years(genres, min_year, max_year)
     offset = 0
@@ -51,9 +50,8 @@ def handle_genre_year_search() -> None:
         else:
             break
 
-
 def handle_actor_search() -> None:
-    '''Обработка поиска по имени актёра.'''
+    '''Handles search by actor's name.'''
     first_name, last_name = ui.prompt_actor_name()
     offset = 0
     while True:
@@ -67,15 +65,14 @@ def handle_actor_search() -> None:
         else:
             break
 
-
 def handle_length_search() -> None:
-    '''Обработка поиска по длительности фильма.'''
+    '''Handles search by movie length.'''
     min_len_db, max_len_db = mysql_connector.get_length_range()
-    print(f'\nДоступный диапазон длины фильмов: от {min_len_db} до {max_len_db} минут.')
+    print(f'\nAvailable movie length range: from {min_len_db} to {max_len_db} minutes.')
     min_length, max_length = ui.length_prompt()
 
     if min_length < min_len_db or max_length > max_len_db:
-        print('Ошибка: введённый диапазон вне допустимых значений.')
+        print('Error: entered range is outside the allowed limits.')
         return
 
     offset = 0
@@ -90,9 +87,8 @@ def handle_length_search() -> None:
         else:
             break
 
-
 def handle_search_menu() -> None:
-    '''Обработка выбора пользователем типа поиска.'''
+    '''Handles user choice of search type.'''
     search_choice = ui.show_search_menu()
     if search_choice == '1':
         handle_keyword_search()
@@ -103,50 +99,47 @@ def handle_search_menu() -> None:
     elif search_choice == '4':
         handle_length_search()
     else:
-        print('Некорректный выбор метода поиска.')
-
+        print('Invalid search method selection.')
 
 def handle_actor_frequency_stat() -> None:
     '''
-    Запрашивает имя актёра у пользователя и выводит статистику частоты запросов.
+    Requests actor's name from user and displays query frequency statistics.
     '''
-    actor_name = input('Введите имя актёра для статистики запросов: ').strip()
+    actor_name = input('Enter the actor\'s name to get query statistics: ').strip()
     if not actor_name:
-        print('Имя актёра не может быть пустым.')
+        print('Actor\'s name cannot be empty.')
         return
 
     count = log_stats.get_actor_query_frequency(actor_name)
-    print(f'Количество запросов для актёра "{actor_name}": {count}')
-
+    print(f'Number of queries for actor "{actor_name}": {count}')
 
 def handle_stat_menu() -> None:
-    '''Обработка меню статистики запросов.'''
+    '''Handles search query statistics menu.'''
     stat_choice = ui.show_stat_menu()
     if stat_choice == '1':
         top = log_stats.get_top_queries()
-        print('\nТоп-5 популярных запросов:')
+        print('\nTop 5 popular queries:')
         for query, count in top:
             print(f"{query}: {count}")
     elif stat_choice == '2':
         last = log_stats.get_last_queries()
-        print('\nПоследние 5 запросов:')
+        print('\nLast 5 queries:')
         for query in last:
             print(query)
     elif stat_choice == '3':
-        type_name = input('Введите тип запроса (keyword, genre_year, actor_name, length_range, rating): ').strip()
+        type_name = input('Enter query type (keyword, genre_year, actor_name, length_range, rating): ').strip()
         filtered = log_stats.get_queries_by_type(type_name)
-        print(f'\nЗапросы типа "{type_name}":')
+        print(f'\nQueries of type "{type_name}":')
         for query in filtered:
             print(query)
     elif stat_choice == '4':
         handle_actor_frequency_stat()
     else:
-        print('Некорректный выбор.')
-
+        print('Invalid choice.')
 
 def main() -> None:
-    '''Основная функция запуска программы.'''
-    print('Добро пожаловать в систему поиска фильмов по базе данных Sakila.')
+    '''Main program entry point.'''
+    print('Welcome to the Sakila database movie search system.')
 
     while True:
         choice = ui.main_menu()
@@ -154,11 +147,9 @@ def main() -> None:
             handle_search_menu()
         elif choice == '2':
             handle_stat_menu()
-        elif choice == '0':
-            if ui.confirm_exit():
-                print('До свидания!')
-                break
-
+        elif choice == '0' and ui.confirm_exit():
+            print('Goodbye!')
+            break
 
 if __name__ == '__main__':
     main()

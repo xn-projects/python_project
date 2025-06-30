@@ -1,6 +1,6 @@
 '''
-Модуль для подключения к базе данных MySQL и выполнения запросов к представлению film_extended_view.
-Содержит функции для поиска фильмов по разным критериям и получения статистики.
+Module for connecting to a MySQL database and executing queries on the film_extended_view.
+Contains functions to search films by various criteria and obtain statistics.
 '''
 
 import pymysql
@@ -12,16 +12,16 @@ import ui
 conn = pymysql.connect(**settings.DATABASE_MYSQL_W)
 
 if conn.open:
-    print('Подключение к MySQL успешно.')
+    print('Successfully connected to MySQL.')
 
 
 def search_by_keyword(keyword, offset=0, limit=10):
     '''
-    Поиск фильмов по ключевому слову в названии.
-    keyword: Ключевое слово для поиска (будет применяться с LIKE %keyword%).
-    offset: Смещение для постраничного отображения данных.
-    limit: Количество возвращаемых записей.
-    return: Список фильмов, соответствующих запросу.
+    Search films by keyword in the title.
+    keyword: Keyword for searching (used with LIKE %keyword%).
+    offset: Offset for pagination.
+    limit: Number of records to return.
+    return: List of films matching the query.
     '''
     with conn.cursor() as cursor:
         query = (
@@ -35,8 +35,8 @@ def search_by_keyword(keyword, offset=0, limit=10):
 
 def get_genres_and_year_range():
     '''
-    Получает список уникальных жанров и диапазон лет выпуска фильмов.
-    return: Cписок жанров, минимальный год, максимальный год.
+    Retrieves the list of unique genres and the range of release years.
+    return: List of genres, minimum year, maximum year.
     '''
     with conn.cursor() as cursor:
         cursor.execute('SELECT DISTINCT category FROM film_extended_view;')
@@ -54,13 +54,13 @@ def get_genres_and_year_range():
 
 def search_by_genre_and_years(genre, year_from, year_to, offset=0, limit=10):
     '''
-    Поиск фильмов по жанру и диапазону годов выпуска.
-    genre: Жанр фильма.
-    year_from: Начальный год.
-    year_to: Конечный год.
-    offset: Смещение для постраничного отображения данных.
-    limit: Количество возвращаемых записей.
-    return: Список фильмов, соответствующих фильтру.
+    Search films by genre and release year range.
+    genre: Film genre.
+    year_from: Starting year.
+    year_to: Ending year.
+    offset: Offset for pagination.
+    limit: Number of records to return.
+    return: List of films matching the filter.
     '''
     with conn.cursor() as cursor:
         query = (
@@ -75,12 +75,12 @@ def search_by_genre_and_years(genre, year_from, year_to, offset=0, limit=10):
 
 def search_by_actor_name(first_name, last_name, offset=0, limit=10):
     '''
-    Поиск фильмов по полному имени актёра.
-    first_name: Имя актёра.
-    last_name: Фамилия актёра.
-    offset: Смещение для постраничного отображения данных.
-    limit: Количество возвращаемых записей.
-    return: Список фильмов, в которых участвует указанный актёр.
+    Search films by full actor name.
+    first_name: Actor's first name.
+    last_name: Actor's last name.
+    offset: Offset for pagination.
+    limit: Number of records to return.
+    return: List of films featuring the specified actor.
     '''
     with conn.cursor() as cursor:
         query = (
@@ -95,11 +95,11 @@ def search_by_actor_name(first_name, last_name, offset=0, limit=10):
 
 def search_by_actor_name_partial(name_part, offset=0, limit=10):
     '''
-    Поиск фильмов по части имени или фамилии актёра.
-    name_part: Фрагмент имени или фамилии актёра.
-    offset: Смещение для постраничного отображения данных.
-    limit: Количество возвращаемых записей.
-    return: Список фильмов, где актёр соответствует части имени.
+    Search films by partial actor's first or last name.
+    name_part: Fragment of the actor's first or last name.
+    offset: Offset for pagination.
+    limit: Number of records to return.
+    return: List of films where actor matches the name fragment.
     '''
     with conn.cursor() as cursor:
         query = (
@@ -114,8 +114,8 @@ def search_by_actor_name_partial(name_part, offset=0, limit=10):
 
 def get_length_range():
     '''
-    Получение минимальной и максимальной длительности фильмов в базе.
-    return: Минимальная длина, максимальная длина в минутах.
+    Get the minimum and maximum film length in the database.
+    return: Minimum length, maximum length in minutes.
     '''
     with conn.cursor() as cursor:
         query = (
@@ -129,12 +129,12 @@ def get_length_range():
 
 def search_by_length_range(length_from: int, length_to: int, offset=0, limit=10):
     '''
-    Поиск фильмов по диапазону длительности.
-    length_from: Минимальная длительность фильма (в минутах).
-    length_to: Максимальная длительность фильма (в минутах).
-    offset: Смещение для постраничного отображения данных.
-    limit: Количество возвращаемых записей.
-    return: Список фильмов, соответствующих фильтру.
+    Search films by length range.
+    length_from: Minimum film length (in minutes).
+    length_to: Maximum film length (in minutes).
+    offset: Offset for pagination.
+    limit: Number of records to return.
+    return: List of films matching the filter.
     '''
     with conn.cursor() as cursor:
         query = (

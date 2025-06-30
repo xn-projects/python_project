@@ -1,27 +1,25 @@
-'''
-Настройки подключения к базам данных MySQL и MongoDB
-для проекта final_project.
-'''
-
-import pymongo
+import os
+from dotenv import load_dotenv
 import pymysql
+import pymongo
+
+load_dotenv()
+
+print("MONGO_DB =", os.getenv('MONGO_DB'))
+print("MONGO_URI =", os.getenv('MONGO_URI'))
 
 DATABASE_MYSQL_W = {
-    'host': 'ich-db.edu.itcareerhub.de',
-    'user': 'ich1',
-    'password': 'password',
-    'database': 'sakila',
-    'charset': 'utf8mb4',
+    'host': os.getenv('MYSQL_HOST'),
+    'user': os.getenv('MYSQL_USER'),
+    'password': os.getenv('MYSQL_PASSWORD'),
+    'database': os.getenv('MYSQL_DATABASE'),
+    'charset': os.getenv('MYSQL_CHARSET'),
     'cursorclass': pymysql.cursors.DictCursor
 }
 
-DATABASE_MYSQL_NAME = 'sakila'
+DATABASE_MYSQL_NAME = os.getenv('MYSQL_DATABASE')
 
-MONGO_CLIENT = pymongo.MongoClient(
-    'mongodb://ich_editor:verystrongpassword'
-    '@mongo.itcareerhub.de/?readPreference=primary'
-    '&ssl=false&authMechanism=DEFAULT&authSource=ich_edit'
-)
+MONGO_CLIENT = pymongo.MongoClient(os.getenv('MONGO_URI'))
 
-DATABASE_MONGO = MONGO_CLIENT['ich_edit']
-MY_COLLECTION_MONGO = DATABASE_MONGO['final_project_100125_Kseniia']
+DATABASE_MONGO = MONGO_CLIENT[os.getenv('MONGO_DB')]
+MY_COLLECTION_MONGO = DATABASE_MONGO[os.getenv('MONGO_COLLECTION')]

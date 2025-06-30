@@ -1,6 +1,6 @@
 '''
-Модуль formatter содержит функции для форматирования логов MongoDB
-в табличный текстовый формат.
+The formatter module contains functions for formatting MongoDB logs
+into a tabular text format.
 '''
 
 import collections
@@ -12,9 +12,9 @@ import tabulate
 
 def format_mongo_logs(logs: List[Dict[str, Any]]) -> str:
     '''
-    Форматирует список логов из MongoDB в виде табличной строки.
-    logs: Список логов, в виде словарей с полями 'query' и 'timestamp'.
-    return: Строка, содержащая отформатированную таблицу.
+    Formats a list of MongoDB logs as a tabular string.
+    logs: List of log entries as dictionaries with 'query' and 'timestamp' fields.
+    return: A string containing the formatted table.
     '''
     table = []
     for entry in logs:
@@ -34,7 +34,7 @@ def format_mongo_logs(logs: List[Dict[str, Any]]) -> str:
 
         table.append([query_type, details, timestamp_str])
 
-    headers = ['Тип запроса', 'Детали запроса', 'Время']
+    headers = ['Query Type', 'Query Details', 'Timestamp']
     return tabulate.tabulate(
         table,
         headers=headers,
@@ -45,9 +45,9 @@ def format_mongo_logs(logs: List[Dict[str, Any]]) -> str:
 
 def format_actor_full_log(actor_logs: List[Dict[str, Any]]) -> str:
     '''
-    Форматирует историю запросов актёров с учётом частоты поиска и деталей.
-    actor_logs: Список логов запросов, в виде словарей с полем 'query' и 'timestamp'.
-    return: Строка, содержащая отформатированную таблицу.
+    Formats actor query history including search frequency and details.
+    actor_logs: List of query logs as dictionaries with 'query' and 'timestamp' fields.
+    return: A string containing the formatted table.
     '''
     table = []
     actor_counter = collections.Counter()
@@ -84,7 +84,7 @@ def format_actor_full_log(actor_logs: List[Dict[str, Any]]) -> str:
 
         table.append([actor_name, actor_counter[actor_name], query_type, details, timestamp_str])
 
-    headers = ['Актёр (поиск)', 'Частота', 'Тип запроса', 'Детали запроса', 'Время']
+    headers = ['Actor (Search)', 'Frequency', 'Query Type', 'Query Details', 'Timestamp']
     return tabulate.tabulate(
         table,
         headers=headers,
