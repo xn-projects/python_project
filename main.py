@@ -10,11 +10,12 @@ import ui
 import mysql_connector
 import log_writer
 import log_stats
+import settings
 
 def handle_pagination(results: list, start_index: int) -> bool:
     '''Displays results and pagination menu.'''
     if start_index >= len(results):
-        print('No more results available.')
+        print('\nNo more results available.')
         log_writer.log_error(f'Tried to display page starting at index {start_index}, but total results are {len(results)}.')
         return False
 
@@ -114,32 +115,34 @@ def handle_actor_frequency_stat() -> None:
     print(f'Number of queries for actor "{actor_name}": {count}')
 
 def handle_stat_menu() -> None:
-    '''Handles search query statistics menu.'''
     stat_choice = ui.show_stat_menu()
+
     if stat_choice == '1':
         top = log_stats.get_top_queries()
         print('\nTop 5 popular queries:')
         for query, count in top:
             print(f"{query}: {count}")
+
     elif stat_choice == '2':
-        last = log_stats.get_last_queries()
+        last = log_stats.get_last_queries(limit=5)
         print('\nLast 5 queries:')
-        for query in last:
-            print(query)
+        ui.display_queries_table(last)
+
     elif stat_choice == '3':
-        type_name = input('Enter query type (keyword, genre_year, actor_name, length_range, rating): ').strip()
+        type_name = input('Enter query type (keyword, genre_year, actor_name, length_range): ').strip()
         filtered = log_stats.get_queries_by_type(type_name)
         print(f'\nQueries of type "{type_name}":')
-        for query in filtered:
-            print(query)
+        ui.display_queries_table(filtered)
+
     elif stat_choice == '4':
         handle_actor_frequency_stat()
+
     else:
         print('Invalid choice.')
 
 def main() -> None:
     '''Main program entry point.'''
-    print('Welcome to the Sakila database movie search system.')
+    print(f'{settings.COLORS["yellow"]}\nWelcome to the Sakila database movie search system.{settings.COLORS["reset"]}')
 
     while True:
         choice = ui.main_menu()
@@ -148,7 +151,7 @@ def main() -> None:
         elif choice == '2':
             handle_stat_menu()
         elif choice == '0' and ui.confirm_exit():
-            print('Goodbye!')
+            print(f'{settings.COLORS["yellow"]}\nGoodbye!{settings.COLORS["reset"]}')
             break
 
 if __name__ == '__main__':

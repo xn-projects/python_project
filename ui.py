@@ -4,58 +4,58 @@ displaying menus, requesting input data, and showing results in the console.
 '''
 
 import tabulate
-
+import settings
 
 def main_menu():
     '''Displays the main menu and returns the user's choice.'''
     prompt = (
-        '\n=== Main Menu ===\n'
-        '1. Search for films\n'
-        '2. Query statistics\n'
-        '0. Exit\n\n'
-        'Enter menu item number (0–2): '
-    )
-
+    f'{settings.COLORS['yellow']}\n=== Main Menu ==={settings.COLORS['reset']}\n'
+    f'{settings.COLORS['blue']}1. Search for films{settings.COLORS['reset']}\n'
+    f'{settings.COLORS['blue']}2. Query statistics{settings.COLORS['reset']}\n'
+    f'{settings.COLORS['red']}0. Exit{settings.COLORS['reset']}\n\n'
+    'Enter menu item number (0–2): '
+)
+    
     while True:
         choice = input(prompt).strip()
         if choice in ('0', '1', '2'):
             return choice
-        print('Invalid choice. Please try again.')
+        print('\nInvalid choice. Please try again.')
 
 
 def confirm_exit():
     '''Asks the user to confirm program exit.'''
-    print('\nDo you really want to exit?')
-    print('0. Yes, exit')
-    print('1. No, return to main menu')
+    print(f'{settings.COLORS['yellow']}\nDo you really want to exit?{settings.COLORS['reset']}')
+    print(f'{settings.COLORS['red']}\n0. Yes, exit{settings.COLORS['reset']}')
+    print(f'{settings.COLORS['blue']}1. No, return to main menu{settings.COLORS['reset']}\n')
     return input('Your choice: ').strip()
 
 
 def show_search_menu():
     '''Displays the film search menu and returns the user's choice.'''
-    print('\n=== Film Search ===')
-    print('1. By keyword')
-    print('2. By genre and year range')
-    print('3. By actor (first and last name)')
-    print('4. By film length')
+    print(f'{settings.COLORS['yellow']}\n=== Film Search ==={settings.COLORS['reset']}\n')
+    print(f'{settings.COLORS['blue']}1. By keyword{settings.COLORS['reset']}')
+    print(f'{settings.COLORS['blue']}2. By genre and year range{settings.COLORS['reset']}')
+    print(f'{settings.COLORS['blue']}3. By actor (first and last name){settings.COLORS['reset']}')
+    print(f'{settings.COLORS['blue']}4. By film length{settings.COLORS['reset']}\n')
     return input('Choose search method: ').strip()
 
 
 def show_pagination_menu():
     '''Displays pagination menu and returns the user's choice.'''
-    print('\nShow next 10 films?')
-    print('1. Yes')
-    print('2. No, return to menu')
+    print(f'{settings.COLORS['yellow']}\nShow next 10 films?{settings.COLORS['reset']}\n')
+    print(f'{settings.COLORS['blue']}1. Yes{settings.COLORS['reset']}')
+    print(f'{settings.COLORS['blue']}2. No, return to menu{settings.COLORS['reset']}\n')
     return input('Your choice: ').strip()
 
 
 def show_stat_menu():
     '''Displays the statistics menu and returns the user's choice.'''
-    print('\n=== Statistics ===')
-    print('1. Top 5 popular queries')
-    print('2. Last 5 queries')
-    print('3. Search queries by type')
-    print('4. Query frequency by actors')
+    print(f'{settings.COLORS['yellow']}\n=== Statistics ==={settings.COLORS['reset']}')
+    print(f'{settings.COLORS['blue']}1. Top 5 popular queries{settings.COLORS['reset']}')
+    print(f'{settings.COLORS['blue']}2. Last 5 queries{settings.COLORS['reset']}')
+    print(f'{settings.COLORS['blue']}3. Search queries by type{settings.COLORS['reset']}')
+    print(f'{settings.COLORS['blue']}4. Query frequency by actors{settings.COLORS['reset']}\n')
     return input('Choose an option: ').strip()
 
 
@@ -66,18 +66,18 @@ def prompt_keyword():
 
 def prompt_actor_name():
     '''Asks the user for the actor's first and last name to search.'''
-    print('\nEnter actor details for search (can be left empty):')
-    first = input('Actor first name: ').strip()
-    last = input('Actor last name: ').strip()
+    print(f'{settings.COLORS['yellow']}\nEnter actor details for search (can be left empty):{settings.COLORS['reset']}\n')
+    first = input(f'{settings.COLORS['blue']}Actor first name: {settings.COLORS['reset']}\n').strip()
+    last = input(f'{settings.COLORS['blue']}Actor last name: {settings.COLORS['reset']}\n').strip()
     return first, last
 
 
 def prompt_genre_and_years(genres, min_year, max_year):
     '''Asks the user for genre and year range to search films.'''
-    print('\nGenres in the database:')
+    print(f'{settings.COLORS['yellow']}\nGenres in the database:{settings.COLORS['reset']}\n')
     for genre in genres:
         print(f'- {genre}')
-    print(f'Available years: from {min_year} to {max_year}')
+    print(f'{settings.COLORS['yellow']}\nAvailable years: from {min_year} to {max_year}{settings.COLORS['reset']}\n')
 
     while True:
         genre = input('Enter genre: ').strip()
@@ -114,7 +114,7 @@ def length_prompt():
                 return min_length, max_length
         except ValueError:
             pass
-        print('Invalid input. Please try again.')
+        print('\nInvalid input. Please try again.')
 
 
 def display_results(results, start_index=1):
@@ -124,7 +124,7 @@ def display_results(results, start_index=1):
     start_index: Number to start numbering results from.
     '''
     if not results:
-        print('No results found.')
+        print('\nNo results found.')
         return
 
     table = []
@@ -142,4 +142,30 @@ def display_results(results, start_index=1):
         )
 
     headers = ['No.', 'Title', 'Year', 'Genre', 'Rating', 'Length', 'Actors']
+    print(tabulate.tabulate(table, headers=headers, tablefmt='grid'))
+
+
+def display_queries_table(queries: list[dict]) -> None:
+    """
+    Universal function to display search queries as a formatted table.
+    Shows only non-empty parameters from each query.
+    """
+    if not queries:
+        print("\nNo queries found.")
+        return
+
+    table = []
+    for entry in queries:
+        filtered_params = {k: v for k, v in entry.get('params', {}).items() if v not in (None, '')}
+        params_str = ', '.join(f"{k}={v}" for k, v in filtered_params.items())
+
+        row = [
+            str(entry.get('_id', '')),
+            entry.get('query_type', ''),
+            entry.get('timestamp').strftime('%Y-%m-%d %H:%M:%S') if entry.get('timestamp') else '',
+            params_str,
+        ]
+        table.append(row)
+
+    headers = ['ID', 'Query Type', 'Timestamp', 'Params Summary']
     print(tabulate.tabulate(table, headers=headers, tablefmt='grid'))

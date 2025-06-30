@@ -5,9 +5,6 @@ import pymongo
 
 load_dotenv()
 
-print("MONGO_DB =", os.getenv('MONGO_DB'))
-print("MONGO_URI =", os.getenv('MONGO_URI'))
-
 DATABASE_MYSQL_W = {
     'host': os.getenv('MYSQL_HOST'),
     'user': os.getenv('MYSQL_USER'),
@@ -23,3 +20,11 @@ MONGO_CLIENT = pymongo.MongoClient(os.getenv('MONGO_URI'))
 
 DATABASE_MONGO = MONGO_CLIENT[os.getenv('MONGO_DB')]
 MY_COLLECTION_MONGO = DATABASE_MONGO[os.getenv('MONGO_COLLECTION')]
+
+COLORS = {
+    "yellow": "\033[93m",
+    "blue": "\033[94m",
+    "red": "\033[91m",
+    "green": "\033[92m",
+    "reset": "\033[0m"
+}

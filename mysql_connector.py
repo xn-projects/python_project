@@ -5,14 +5,13 @@ Contains functions to search films by various criteria and obtain statistics.
 
 import pymysql
 import tabulate
-
 import settings
 import ui
 
 conn = pymysql.connect(**settings.DATABASE_MYSQL_W)
 
-if conn.open:
-    print('Successfully connected to MySQL.')
+'''if conn.open:
+    print('Successfully connected to MySQL.')'''
 
 
 def search_by_keyword(keyword, offset=0, limit=10):
