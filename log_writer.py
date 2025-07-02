@@ -1,12 +1,14 @@
-'''
+"""
 The log_writer module contains functions for writing and formatting query logs
 to MongoDB and displaying them in a tabular format.
-'''
+"""
 
+import logging
+from functools import wraps
 from datetime import datetime, timezone
 from tabulate import tabulate
 import settings
-
+import ui
 
 POSSIBLE_KEYS = [
     'keyword',
@@ -29,8 +31,7 @@ def log_query(query_type: str, query_params: dict) -> None:
     base_params = {key: None for key in POSSIBLE_KEYS}
     base_params.update(query_params)
 
-    db = settings.MONGO_CLIENT['ich_edit']
-    collection = db['final_project_100125_Kseniia']
+    collection = settings.get_mongo_collection()
 
     collection.insert_one({
         'query_type': query_type,
@@ -62,17 +63,19 @@ def format_mongo_logs(logs: list[dict]) -> str:
     return tabulate(table, headers=headers, tablefmt='fancy_grid', stralign='left')
 
 
-def format_actor_frequency(freq_list: list[tuple[str, int]]) -> str:
+def log_error(display=True):
     '''
-    Formats statistics of actor search query frequency into a table.
-    freq_list: List of tuples (actor, query count).
-    return: A string with the formatted frequency table.
+    Decorator for logging exceptions and optionally displaying them.
     '''
-    table = [[actor, count] for actor, count in freq_list]
-    headers = ['Actor (name part)', 'Number of Queries']
-    return tabulate(table, headers=headers, tablefmt='fancy_grid', stralign='left')
-
-
-def log_error(message: str):
-    with open('error.log', 'a', encoding='utf-8') as f:
-        f.write(f"[ERROR] {message}\n")
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                logging.exception(e)
+                if display:
+                    ui.show_error(f'Error: {e}')
+                return None
+        return wrapper
+    return decorator

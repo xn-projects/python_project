@@ -3,18 +3,7 @@ Module for connecting to a MySQL database and executing queries on the film_exte
 Contains functions to search films by various criteria and obtain statistics.
 '''
 
-import pymysql
-import tabulate
-import settings
-import ui
-
-conn = pymysql.connect(**settings.DATABASE_MYSQL_W)
-
-'''if conn.open:
-    print('Successfully connected to MySQL.')'''
-
-
-def search_by_keyword(keyword, offset=0, limit=10):
+def search_by_keyword(conn, keyword, offset=0, limit=10):
     '''
     Search films by keyword in the title.
     keyword: Keyword for searching (used with LIKE %keyword%).
@@ -32,7 +21,7 @@ def search_by_keyword(keyword, offset=0, limit=10):
         return cursor.fetchall()
 
 
-def get_genres_and_year_range():
+def get_genres_and_year_range(conn):
     '''
     Retrieves the list of unique genres and the range of release years.
     return: List of genres, minimum year, maximum year.
@@ -51,7 +40,7 @@ def get_genres_and_year_range():
     return genres, min_year, max_year
 
 
-def search_by_genre_and_years(genre, year_from, year_to, offset=0, limit=10):
+def search_by_genre_and_years(conn, genre, year_from, year_to,*, offset=0, limit=10):
     '''
     Search films by genre and release year range.
     genre: Film genre.
@@ -72,27 +61,7 @@ def search_by_genre_and_years(genre, year_from, year_to, offset=0, limit=10):
         return cursor.fetchall()
 
 
-def search_by_actor_name(first_name, last_name, offset=0, limit=10):
-    '''
-    Search films by full actor name.
-    first_name: Actor's first name.
-    last_name: Actor's last name.
-    offset: Offset for pagination.
-    limit: Number of records to return.
-    return: List of films featuring the specified actor.
-    '''
-    with conn.cursor() as cursor:
-        query = (
-            'SELECT * FROM film_extended_view '
-            'WHERE UPPER(actors) LIKE UPPER(%s) '
-            'LIMIT %s OFFSET %s;'
-        )
-        full_name = f'%{first_name} {last_name}%'
-        cursor.execute(query, (full_name, limit, offset))
-        return cursor.fetchall()
-
-
-def search_by_actor_name_partial(name_part, offset=0, limit=10):
+def search_by_actor_name_partial(conn, name_part, offset=0, limit=10):
     '''
     Search films by partial actor's first or last name.
     name_part: Fragment of the actor's first or last name.
@@ -111,7 +80,7 @@ def search_by_actor_name_partial(name_part, offset=0, limit=10):
         return cursor.fetchall()
 
 
-def get_length_range():
+def get_length_range(conn):
     '''
     Get the minimum and maximum film length in the database.
     return: Minimum length, maximum length in minutes.
@@ -126,7 +95,7 @@ def get_length_range():
     return result['min_length'], result['max_length']
 
 
-def search_by_length_range(length_from: int, length_to: int, offset=0, limit=10):
+def search_by_length_range(conn, length_from: int, length_to: int, offset=0, limit=10):
     '''
     Search films by length range.
     length_from: Minimum film length (in minutes).
