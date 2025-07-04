@@ -2,9 +2,9 @@
 Main module: запуск программы, обработка меню и подключение к БД.
 '''
 
+import display_utils
 import ui
 import settings
-
 
 def main() -> None:
     '''
@@ -28,7 +28,8 @@ def main() -> None:
     try:
         connection_query = settings.create_mysql_connection()
 
-        print(f'{ui.colorize("\nWelcome to the Sakila database movie search system.", "yellow")}')
+        message = '\nWelcome to the Sakila database movie search system.'
+        print(display_utils.colorize(message, 'yellow'))
 
         while True:
             choice = ui.main_menu()
@@ -40,14 +41,14 @@ def main() -> None:
                 ui.handle_stat_menu()
 
             elif choice == '3' and ui.confirm_exit(connection_query):
-                print(f'{ui.colorize("\nGoodbye!", "yellow")}')
+                print(f'{display_utils.colorize("\nGoodbye!", "yellow")}')
                 break
 
             else:
-                print(f'{ui.colorize("\nInvalid choice, please try again", "red")}')
+                print(f'{display_utils.colorize("\nInvalid choice, please try again", "red")}')
 
     except Exception as e:
-        print(f'{ui.colorize(f"\nAn unexpected error occurred: {e}", "red")}')
+        print(f'{display_utils.colorize(f"\nAn unexpected error occurred: {e}", "red")}')
 
     finally:
         if connection_query:

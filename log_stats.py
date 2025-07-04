@@ -5,31 +5,39 @@ from MongoDB.
 
 import collections
 from datetime import datetime
-import tabulate
+from log_writer import POSSIBLE_KEYS
 import settings
+import display_utils
 
 
-def get_top_queries(limit: int = 10) -> list[tuple[str, int]]:
+def get_top_queries(limit: int = 5) -> list[tuple[str, int]]:
     '''
-    Retrieves the most popular search queries across all types.
+    Collects all parameter values from query_type and params,
+    and returns the top most popular combinations.
     Args:
-        limit (int): The maximum number of top queries to return. Defaults to 10.
+        limit (int): Number of top items to return. Defaults to 5.
     Returns:
-        List of tuples where each tuple contains a query string and its count,
-        ordered from most to least frequent.
-    Raises:
-        None explicitly, but connection errors may occur on DB access.
+        List of tuples (parameter_combination, count) sorted by count descending.
     '''
-    mongo_db = settings.MONGO_CLIENT['ich_edit']
-    collection = mongo_db['final_project_100125_Kseniia']
 
+    collection = settings.get_mongo_collection()
     cursor = collection.find({})
-    queries = [
-        doc.get('query', '').strip().lower()
-        for doc in cursor
-        if 'query' in doc
-    ]
-    counter = collections.Counter(queries)
+
+    all_items = []
+
+    for doc in cursor:
+        query_type = doc.get('query_type')
+        params = doc.get('params', {})
+        if not query_type or not isinstance(params, dict):
+            continue
+
+        for key in POSSIBLE_KEYS:
+            value = params.get(key)
+            if value is not None and value != '':
+                item = f"{query_type}.{key}:{value}".strip().lower()
+                all_items.append(item)
+
+    counter = collections.Counter(all_items)
     return counter.most_common(limit)
 
 
@@ -40,30 +48,43 @@ def get_last_queries(limit: int = 10) -> list[dict]:
         limit (int): Number of recent queries to retrieve. Defaults to 10.
     Returns:
         List of MongoDB documents representing recent query logs, sorted by timestamp descending.
-    Raises:
-        None explicitly, but connection errors may occur on DB access.
     '''
-    mongo_db = settings.MONGO_CLIENT['ich_edit']
-    collection = mongo_db['final_project_100125_Kseniia']
 
+    collection = settings.get_mongo_collection()
     return list(collection.find({}).sort('timestamp', -1).limit(limit))
 
-def get_queries_by_type(query_type: str) -> list[dict]:
-    '''
-    Retrieves query log entries filtered by a specific query type.
-    Args:
-        query_type (str): Type of the query to filter by (e.g., 'actor_partial', 'category', etc.).
-    Returns:
-        List of MongoDB documents matching the query_type, sorted by timestamp descending.
-    Raises:
-        None explicitly, but connection errors may occur on DB access.
-    '''
-    mongo_db = settings.MONGO_CLIENT['ich_edit']
-    collection = mongo_db['final_project_100125_Kseniia']
 
-    return list(
-        collection.find({'query_type': query_type}).sort('timestamp', -1)
-    )
+def get_queries_by_type(query_type: str, limit: int = 5, fetch_limit: int = 100) -> list[dict]:
+    '''
+    Retrieves up to `limit` unique entries by query_type,
+    uniqueness based on params, from the last `fetch_limit` records.
+    Args:
+        query_type (str): The query type to filter by.
+        limit (int): Maximum number of unique results to return. Defaults to 5.
+        fetch_limit (int): Number of recent records to fetch from DB. Defaults to 100.
+    Returns:
+        List of unique query documents filtered by query_type.
+    '''
+
+    collection = settings.get_mongo_collection()
+
+    recent = list(collection.find({'query_type': query_type}).sort('timestamp', -1).limit(fetch_limit))
+
+    unique_params = set()
+    unique_results = []
+
+    for doc in recent:
+        params = doc.get('params', {})
+        params_tuple = tuple(sorted(params.items()))
+
+        if params_tuple not in unique_params:
+            unique_params.add(params_tuple)
+            unique_results.append(doc)
+
+            if len(unique_results) >= limit:
+                break
+
+    return unique_results
 
 
 def handle_query_count(query_type: str = None, show: bool = False) -> None:
@@ -74,12 +95,9 @@ def handle_query_count(query_type: str = None, show: bool = False) -> None:
         show (bool): If True, displays the count of queries per type.
     Returns:
         None
-    Raises:
-        None explicitly, but connection errors may occur on DB access.
     '''
 
-    db = settings.MONGO_CLIENT['ich_edit']
-    collection = db['final_project_100125_Kseniia']
+    collection = settings.get_mongo_collection()
 
     valid_types = ['keyword', 'genre_year', 'length_range', 'actor_name']
 
@@ -108,19 +126,4 @@ def handle_query_count(query_type: str = None, show: bool = False) -> None:
         for q_type in valid_types:
             data.append([q_type, counts.get(q_type, 0)])
 
-        display_query_counts_table(dict(data))
-
-
-def display_query_counts_table(query_counts: dict) -> None:
-    """
-    Prints a formatted table showing counts per query type.
-    Args:
-        query_counts (dict): Mapping of query type strings to counts.
-    Returns:
-        None
-    Raises:
-        None
-    """
-    data = [[q_type, count] for q_type, count in query_counts.items()]
-    headers = ['Query Type', 'Count']
-    print(tabulate.tabulate(data, headers=headers, tablefmt='grid'))
+        display_utils.display_query_counts_table(dict(data))

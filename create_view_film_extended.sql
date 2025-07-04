@@ -1,6 +1,8 @@
-'''Используем представление film_extended_view, чтобы не писать каждый раз JOINы
-Оно объединяет таблицы film, film_category, film_actor, actor, category в одну таблицу
-Это упрощает запросы и повышает читаемость кода'''
+'''
+Use the view film_extended_view to avoid writing JOINs repeatedly.
+This view combines the tables film, film_category, film_actor, actor, and category into a single unified table.
+It simplifies queries and improves code readability.
+'''
     
 use sakila;
 CREATE VIEW film_extended_view AS
